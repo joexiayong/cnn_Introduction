@@ -32,19 +32,20 @@ class DataSource(object):
 
 class UseGpu(object):
     def __init__(self):
+        self.want_to_use_gpu = False
         self.gpu_memory = 570
-        self.gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
 
     def this_device_use_gpu(self):
-
-        tf.config.experimental.set_memory_growth(self.gpus[0], True)
-        tf.config.experimental.set_virtual_device_configuration(self.gpus[0],
+        gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        tf.config.experimental.set_virtual_device_configuration(gpus[0],
                                                                 [tf.config.experimental.VirtualDeviceConfiguration(
                                                                     memory_limit=self.gpu_memory)])
 
     def is_device_use_gpu(self):
-        if tf.test.is_gpu_available():
-            self.this_device_use_gpu()
+        if self.want_to_use_gpu:
+            if tf.test.is_gpu_available():
+                self.this_device_use_gpu()
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
