@@ -9,8 +9,7 @@ import datetime
 
 class DataSource(object):
     def __init__(self):
-        data_path = os.path.abspath(os.path.dirname(__file__))
-        data_path += '/../mnist.npz'
+        data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../mnist.npz'))
         mnist = datasets.mnist
 
         (train_images, train_labels), (test_images,
@@ -32,10 +31,10 @@ class DataSource(object):
 
 class UseGpu(object):
     def __init__(self):
-        self.want_to_use_gpu = False
+        self.want_to_use_gpu = True
         self.gpu_memory = 570
 
-    def this_device_use_gpu(self):
+    def __this_device_use_gpu__(self):
         gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
         tf.config.experimental.set_memory_growth(gpus[0], True)
         tf.config.experimental.set_virtual_device_configuration(gpus[0],
@@ -45,7 +44,7 @@ class UseGpu(object):
     def is_device_use_gpu(self):
         if self.want_to_use_gpu:
             if tf.test.is_gpu_available():
-                self.this_device_use_gpu()
+                self.__this_device_use_gpu__()
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -79,16 +78,16 @@ class Train:
         self.data = DataSource()
 
     def train(self):
-        check_path = './point/cp-{epoch:04d}.ckpt'
+        check_path = os.path.abspath(os.path.join(os.getcwd(), './point/cp-{epoch:04d}.ckpt'))
         save_model_cb = tf.keras.callbacks.ModelCheckpoint(
             check_path, save_weights_only=True, verbose=1, period=5)
 
         self.cnn.model.compile(optimizer='adam',
                                loss='sparse_categorical_crossentropy',
                                metrics=['accuracy'])
+        log_dir_path = os.path.abspath(os.path.join(os.getcwd(), '../logs/'+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
 
-        log_dir = "C:\\code\\cnn_Introduction\\logs\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir_path, histogram_freq=1)
 
         self.cnn.model.fit(self.data.train_images, self.data.train_labels,
                            epochs=5, callbacks=[save_model_cb, tensorboard_callback])
@@ -99,5 +98,4 @@ class Train:
 
 
 if __name__ == "__main__":
-    app = Train()
-    app.train()
+    Train().train()
