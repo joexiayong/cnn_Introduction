@@ -1,4 +1,4 @@
 .vscode
 .idea
 backup
-
+*/__pycache__
